@@ -29,45 +29,54 @@ export function parseFontFile(arrayBuffer) {
 //   .prefix-name:before { content: '\eXXX'; }
 //   .prefix-name::before { content: "\eXXX"; }
 export function parseCssForGlyphNames(cssText) {
-  const nameMap = {}; // codepoint hex → name
-  let detectedFontName = null;
-  // Match: .something-name:before { content: '\eXXX' }
-  // or .something-name::before { content: "\eXXX" }
+  // Step 1: collect all class names with their codepoints
   const regex = /\.([a-zA-Z0-9_-]+)\s*::?before\s*\{\s*content:\s*['"]\\([0-9a-fA-F]+)['"]\s*;/g;
+  const entries = [];
   let match;
   while ((match = regex.exec(cssText)) !== null) {
-    const fullClassName = match[1]; // e.g. "pmi-icon-cart"
-    const codepoint = match[2].toLowerCase(); // e.g. "e816"
-    const name = stripCssPrefix(fullClassName);
-    nameMap[codepoint] = name;
-    // Detect font name from the CSS prefix (e.g. "pmi-icon" from "pmi-icon-cart")
-    if (!detectedFontName) {
-      for (const prefix of KNOWN_PREFIXES) {
-        if (fullClassName.startsWith(prefix)) {
-          detectedFontName = prefix.replace(/-$/, ''); // "pmi-icon-" → "pmi-icon"
-          break;
-        }
-      }
-    }
+    entries.push({ fullClass: match[1], codepoint: match[2].toLowerCase() });
   }
-  // Also try to extract font-family from @font-face
+
+  // Step 2: auto-detect the common prefix from all class names
+  const detectedPrefix = findCommonPrefix(entries.map(e => e.fullClass));
+
+  // Step 3: strip prefix to get icon names
+  const nameMap = {};
+  for (const e of entries) {
+    const name = detectedPrefix ? e.fullClass.slice(detectedPrefix.length) : e.fullClass;
+    nameMap[e.codepoint] = name;
+  }
+
+  // Step 4: try to extract font-family from @font-face
+  let detectedFontName = null;
   const fontFaceMatch = cssText.match(/font-family:\s*['"]([^'"]+)['"]/);
   if (fontFaceMatch) {
     detectedFontName = fontFaceMatch[1];
   }
+
   return { nameMap, detectedFontName };
 }
 
-const KNOWN_PREFIXES = ['pmi-icon-', 'icon-', 'fa-', 'glyphicon-', 'ic-'];
-
-// Strip CSS class prefix to get just the icon name
-function stripCssPrefix(className) {
-  for (const prefix of KNOWN_PREFIXES) {
-    if (className.startsWith(prefix)) {
-      return className.slice(prefix.length);
+// Find the longest common prefix ending with a separator (- or _)
+// e.g. ["my-icon-cart", "my-icon-search", "my-icon-home"] → "my-icon-"
+function findCommonPrefix(strings) {
+  if (!strings || strings.length === 0) return '';
+  if (strings.length === 1) {
+    // Single entry: find last separator
+    const last = Math.max(strings[0].lastIndexOf('-'), strings[0].lastIndexOf('_'));
+    return last > 0 ? strings[0].slice(0, last + 1) : '';
+  }
+  // Find character-by-character common prefix
+  let prefix = strings[0];
+  for (let i = 1; i < strings.length; i++) {
+    while (!strings[i].startsWith(prefix)) {
+      prefix = prefix.slice(0, -1);
+      if (!prefix) return '';
     }
   }
-  return className;
+  // Trim to the last separator so we don't cut mid-word
+  const lastSep = Math.max(prefix.lastIndexOf('-'), prefix.lastIndexOf('_'));
+  return lastSep > 0 ? prefix.slice(0, lastSep + 1) : '';
 }
 
 // Apply CSS name mappings to existing glyphs in state

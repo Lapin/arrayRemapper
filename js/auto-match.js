@@ -1,14 +1,11 @@
 import { getState, notify } from './state.js';
 import { autoSave } from './persistence.js';
 
-const STRIP_PREFIXES = ['_pmi-icon-', 'pmi-icon-', 'icon-', 'ic-'];
-
+// Normalize a name for fuzzy matching:
+// strip extension, leading underscores, hyphens, underscores, spaces, lowercase
 function normalizeName(name) {
   let n = name.toLowerCase();
   n = n.replace(/\.svg$/i, '');
-  for (const prefix of STRIP_PREFIXES) {
-    if (n.startsWith(prefix)) { n = n.slice(prefix.length); break; }
-  }
   n = n.replace(/^_+/, '');
   n = n.replace(/[-_ ]/g, '');
   return n;
@@ -21,7 +18,15 @@ export function autoMatch() {
     if (m.isCategory || m.svgFilename) return;
     const normGlyph = normalizeName(m.glyphName);
     for (const entry of s.svgEntries) {
-      if (normGlyph === normalizeName(entry.filename)) {
+      const normSvg = normalizeName(entry.filename);
+      // Exact match after normalization
+      if (normGlyph === normSvg) {
+        m.svgFilename = entry.filename;
+        matched++;
+        return;
+      }
+      // Also match if one ends with the other (handles prefixed names)
+      if (normSvg.endsWith(normGlyph) || normGlyph.endsWith(normSvg)) {
         m.svgFilename = entry.filename;
         matched++;
         return;
