@@ -426,14 +426,27 @@ body {
 }
 
 .col-resize {
-  width: 4px;
+  width: 12px;
   cursor: col-resize;
   background: transparent;
   transition: background 0.15s;
   flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.col-resize::after {
+  content: '⋮';
+  font-size: 14px;
+  color: #bbb;
+  line-height: 1;
 }
 .col-resize:hover {
-  background: #c4c8cf;
+  background: #e8eaed;
+}
+.col-resize:hover::after {
+  color: #666;
 }
 
 /* ===== Pool Section Headers (collapsible) ===== */
