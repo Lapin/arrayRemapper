@@ -747,7 +747,7 @@ function buildHtmlPreview(fontName, allMappings, otfBase64, woffBase64, svgEntri
   .card {
     background: #fafafa;
     border: 1px solid #eee;
-    border-radius: 0;
+    border-radius: 8px;
     padding: 16px 12px;
     text-align: center;
     transition: background 0.15s;
