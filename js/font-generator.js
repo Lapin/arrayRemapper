@@ -627,6 +627,7 @@ function buildHtmlPreview(fontName, allMappings, otfBase64, woffBase64, svgEntri
   }
 
   const totalGlyphs = allMappings.filter(m => !m.isCategory).length;
+  const exportDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const exportLogo = branding.exportLogoHtml || '';
   const exportFooter = branding.exportFooterHtml || '';
@@ -650,25 +651,24 @@ function buildHtmlPreview(fontName, allMappings, otfBase64, woffBase64, svgEntri
     background: #fff;
     padding: 20px 24px;
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     border: 1px solid #e5e7eb;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
   }
-  .page-header-left { display: flex; flex-direction: column; gap: 8px; }
-  .export-logo { margin-bottom: 4px; }
+  .page-header-title { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .glyph-count { font-size: 16px; font-weight: 400; color: #888; }
+  .export-date { font-size: 12px; color: #aaa; margin-top: 4px; }
+  .export-logo { margin-bottom: 12px; }
   .export-logo:empty { display: none; }
-  .export-logo img, .export-logo svg { height: 32px; width: auto; }
-  .stats { font-size: 12px; color: #888; }
+  .export-logo img, .export-logo svg { height: 28px; width: auto; }
+  .search-bar {
+    margin-bottom: 16px;
+  }
   .search-box {
-    padding: 8px 14px;
+    padding: 10px 16px;
     border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 13px;
-    width: 240px;
+    border-radius: 8px;
+    font-size: 14px;
+    width: 100%;
     outline: none;
     font-family: inherit;
   }
@@ -775,11 +775,13 @@ function buildHtmlPreview(fontName, allMappings, otfBase64, woffBase64, svgEntri
 </head>
 <body>
   <div class="page-header">
-    <div class="page-header-left">
-      <div class="export-logo">${exportLogo}</div>
-      <h1>${escHtml(fontName)}</h1>
-      <div class="stats">${totalGlyphs} glyphs</div>
+    <div class="export-logo">${exportLogo}</div>
+    <div class="page-header-title">
+      <h1>${escHtml(fontName)} <span class="glyph-count">(${totalGlyphs} glyphs)</span></h1>
+      <div class="export-date">Exported ${exportDate}</div>
     </div>
+  </div>
+  <div class="search-bar">
     <input type="text" class="search-box" id="searchBox" placeholder="Search icons..." oninput="filterIcons(this.value)">
   </div>
   <div class="info-box collapsed">
