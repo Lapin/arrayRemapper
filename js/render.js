@@ -161,6 +161,7 @@ function handleCssFile(file, callback) {
       }
       const applied = applyCssNames(parsed);
       cssWasApplied = true;
+      updateLandingState();
       if (callback) callback();
       else showToast(`Applied ${applied} glyph names from CSS`);
     } catch (err) {
