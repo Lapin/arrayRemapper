@@ -223,8 +223,84 @@ body {
 .main {
   flex: 1;
   display: flex;
-  flex-direction: row;
   overflow: hidden;
+}
+
+/* ===== Workspace ===== */
+.workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f0f2f5;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.workspace-columns {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ===== Sections ===== */
+.section {
+  background: #fff;
+  border: 1px solid #e0e3e8;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-mapping {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-pool {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.section-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e0e3e8;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.section-header-top {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  margin: 0;
+}
+
+.section-search {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+}
+
+.section-search:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* ===== Landing / Drop Zone ===== */
@@ -300,27 +376,7 @@ body {
   color: #888;
 }
 
-/* ===== Mapping Panel ===== */
-.mapping-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-right: 1px solid #e5e5e5;
-  background: #f8f9fa;
-}
-
-.panel-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e5e5e5;
-  background: #fff;
-  flex-shrink: 0;
-  gap: 10px;
-}
+/* ===== (Legacy .mapping-panel / .panel-header removed — now .section-mapping / .section-header) ===== */
 
 .panel-title {
   font-size: 15px;
@@ -329,50 +385,30 @@ body {
 }
 
 .panel-title-input {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: #222;
   border: 1px solid transparent;
   border-radius: 6px;
-  padding: 2px 6px;
+  padding: 4px 8px;
   background: transparent;
   outline: none;
   font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
 }
 .panel-title-input:hover {
   border-color: #ddd;
+  background: #f8f9fa;
 }
 .panel-title-input:focus {
   border-color: #2563eb;
   background: #fff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.panel-search {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.15s;
-  order: 1;
-}
+/* ===== (Legacy .panel-search removed — now .section-search) ===== */
 
-.panel-search:focus {
-  border-color: #2563eb;
-}
-
-/* ===== Mapping Controls ===== */
-.mapping-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 16px;
-  border-bottom: 1px solid #e5e5e5;
-  background: #fff;
-  flex-shrink: 0;
-  gap: 8px;
-}
+/* ===== (Legacy .mapping-controls removed — merged into .section-header) ===== */
 
 .filter-btns {
   display: flex;
@@ -412,8 +448,8 @@ body {
   display: flex;
   align-items: center;
   padding: 6px 16px;
-  border-bottom: 1px solid #ddd;
-  background: #f0f0f0;
+  border-bottom: 1px solid #e0e3e8;
+  background: #f8f9fa;
   font-size: 11px;
   font-weight: 600;
   color: #777;
@@ -639,21 +675,36 @@ body {
 .category-row {
   display: flex;
   align-items: center;
-  min-height: 46px;
-  padding: 10px 20px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-left: 4px solid #7c3aed;
-  border-radius: 8px;
-  margin: 8px 12px;
+  min-height: 40px;
+  padding: 10px 16px;
+  background: #f8f9fa;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  margin: 0;
   gap: 10px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
 }
 
 .category-row.selected {
   background: #ede9fe;
-  border-color: #c4b5fd;
-  border-left: 4px solid #2563eb;
+  border-top-color: #c4b5fd;
+  border-bottom-color: #c4b5fd;
+}
+
+.category-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 1;
+  min-width: 0;
+  outline: none;
+  padding: 2px 6px;
+  border-radius: 6px;
 }
 
 .category-toggle {
@@ -669,17 +720,6 @@ body {
 
 .category-toggle.collapsed {
   transform: rotate(-90deg);
-}
-
-.category-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-  flex: 1;
-  min-width: 0;
-  outline: none;
-  padding: 2px 6px;
-  border-radius: 6px;
 }
 
 .category-label:focus {
@@ -735,8 +775,8 @@ body {
 
 /* ===== Stats Row ===== */
 .mapping-stats-row {
-  padding: 6px 16px;
-  border-top: 1px solid #e5e5e5;
+  padding: 8px 16px;
+  border-top: 1px solid #e0e3e8;
   background: #fff;
   flex-shrink: 0;
 }
@@ -746,48 +786,12 @@ body {
   color: #777;
 }
 
-/* ===== Pool Panel ===== */
-.pool-panel {
-  width: 280px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: #fff;
-  border-left: 1px solid #e5e5e5;
-}
-
-.pool-header {
-  padding: 12px;
-  border-bottom: 1px solid #e5e5e5;
-  flex-shrink: 0;
-}
-
-.pool-header h3 {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #333;
-}
+/* ===== (Legacy .pool-panel / .pool-header / .pool-search removed — now .section-pool / .section-header / .section-search) ===== */
 
 .pool-count {
   font-weight: 400;
   color: #888;
   font-size: 13px;
-}
-
-.pool-search {
-  width: 100%;
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.pool-search:focus {
-  border-color: #2563eb;
 }
 
 .pool-scroll {
