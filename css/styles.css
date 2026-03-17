@@ -376,39 +376,77 @@ body {
   color: #888;
 }
 
-/* ===== (Legacy .mapping-panel / .panel-header removed — now .section-mapping / .section-header) ===== */
-
-.panel-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #222;
+/* ===== Font Name Input ===== */
+.font-name-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.panel-title-input {
+.font-name-input {
   font-size: 16px;
   font-weight: 600;
   color: #222;
-  border: 1px solid transparent;
+  border: 1px solid #ddd;
   border-radius: 6px;
-  padding: 4px 8px;
-  background: transparent;
+  padding: 6px 10px;
+  background: #fff;
   outline: none;
   font-family: inherit;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 240px;
 }
-.panel-title-input:hover {
-  border-color: #ddd;
-  background: #f8f9fa;
-}
-.panel-title-input:focus {
+.font-name-input:focus {
   border-color: #2563eb;
-  background: #fff;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* ===== (Legacy .panel-search removed — now .section-search) ===== */
+.font-name-hint {
+  font-size: 10px;
+  color: #999;
+}
+.font-name-hint strong {
+  color: #666;
+  font-weight: 500;
+}
 
-/* ===== (Legacy .mapping-controls removed — merged into .section-header) ===== */
+/* ===== Resize Handles ===== */
+.panel-resize {
+  width: 6px;
+  cursor: col-resize;
+  background: transparent;
+  border-radius: 3px;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  margin: 0 -3px;
+  z-index: 1;
+}
+.panel-resize:hover {
+  background: #c4c8cf;
+}
+
+.col-resize {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.col-resize:hover {
+  background: #c4c8cf;
+}
+
+/* ===== Pool Section Headers (collapsible) ===== */
+.pool-section-chevron {
+  font-size: 10px;
+  color: #999;
+  transition: transform 0.15s;
+  display: inline-block;
+  margin-right: 4px;
+}
+.pool-section-chevron.collapsed {
+  transform: rotate(-90deg);
+}
 
 .filter-btns {
   display: flex;
@@ -811,9 +849,15 @@ body {
   color: #888;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 8px 4px 4px;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 4px;
+  padding: 8px 6px 6px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+.pool-section-header:hover {
+  background: #f0f0f0;
 }
 
 .section-count {

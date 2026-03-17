@@ -249,48 +249,68 @@ export function renderMappingView() {
   const s = getState();
 
   main.innerHTML = `
-    <div class="mapping-panel">
-      <div class="panel-header">
-        <input class="panel-title-input" id="fontNameInput" value="${escHtml(s.fontName || 'Untitled Font')}" title="Click to edit font name — this is used for the generated font file">
-        <input class="panel-search" id="mainSearch" placeholder="Search glyphs..." value="${escHtml(s.searchQuery)}">
-      </div>
-      <div class="mapping-controls">
-        <div class="filter-btns">
-          <button class="filter-btn${s.filter === 'all' ? ' active' : ''}" data-filter="all">All</button>
-          <button class="filter-btn${s.filter === 'matched' ? ' active' : ''}" data-filter="matched">Matched</button>
-          <button class="filter-btn${s.filter === 'unmatched' ? ' active' : ''}" data-filter="unmatched">Unmatched</button>
-          <button class="filter-btn${s.filter === 'new' ? ' active' : ''}" data-filter="new">New</button>
+    <div class="workspace">
+      <div class="workspace-columns">
+        <!-- Left: Glyph Table -->
+        <div class="section section-mapping">
+          <div class="section-header">
+            <div class="section-header-top">
+              <div class="font-name-group">
+                <input class="font-name-input" id="fontNameInput" value="${escHtml(s.fontName || 'Untitled Font')}">
+                <div class="font-name-hint">This name is used for exported files (e.g. <strong>${escHtml(s.fontName || 'fontname')}-icon</strong>)</div>
+              </div>
+              <div class="mapping-controls-right">
+                <button class="btn btn-secondary" id="btnEditSelected" disabled>Edit</button>
+                <button class="btn btn-secondary" id="btnAddCategory">+ Category</button>
+                <button class="btn btn-primary" id="btnAutoMatch">Auto-Match</button>
+              </div>
+            </div>
+            <input class="section-search" id="mainSearch" placeholder="Search glyphs..." value="${escHtml(s.searchQuery)}">
+            <div class="filter-btns">
+              <button class="filter-btn${s.filter === 'all' ? ' active' : ''}" data-filter="all">All</button>
+              <button class="filter-btn${s.filter === 'matched' ? ' active' : ''}" data-filter="matched">Matched</button>
+              <button class="filter-btn${s.filter === 'unmatched' ? ' active' : ''}" data-filter="unmatched">Unmatched</button>
+              <button class="filter-btn${s.filter === 'new' ? ' active' : ''}" data-filter="new">New</button>
+            </div>
+          </div>
+          <div class="mapping-header">
+            <div class="col-head" style="width:20px;"></div>
+            <div class="col-head col-idx">#</div>
+            <div class="col-head col-font">Font Glyph</div>
+            <div class="col-resize" id="colResize"></div>
+            <div class="col-head col-svg">Mapped SVG</div>
+          </div>
+          <div class="mapping-scroll" id="mappingScroll">
+            <div id="mappingList"></div>
+            <div class="mapping-footer-actions">
+              <div class="add-row-btn" id="btnAddSlot">+ Add new icon slot</div>
+              <div class="add-row-btn" id="btnAddCatBottom">+ Add category</div>
+            </div>
+          </div>
+          <div class="mapping-stats-row">
+            <span class="stats" id="stats"></span>
+          </div>
         </div>
-        <div class="mapping-controls-right">
-          <button class="btn btn-secondary" id="btnEditSelected" disabled>Edit</button>
-          <button class="btn btn-secondary" id="btnAddCategory">+ Category</button>
-          <button class="btn btn-primary" id="btnAutoMatch">Auto-Match</button>
+
+        <!-- Resize handle between panels -->
+        <div class="panel-resize" id="panelResize"></div>
+
+        <!-- Right: SVG Pool -->
+        <div class="section section-pool" id="sectionPool">
+          <div class="section-header">
+            <div class="section-header-top">
+              <h3 class="section-title">SVG Pool <span class="pool-count" id="poolCount"></span></h3>
+            </div>
+            <input class="section-search" id="poolSearch" placeholder="Search SVGs...">
+            <div class="filter-btns pool-filter-btns">
+              <button class="filter-btn active" data-pool-filter="all">All</button>
+              <button class="filter-btn" data-pool-filter="free">Free</button>
+              <button class="filter-btn" data-pool-filter="used">Used</button>
+            </div>
+          </div>
+          <div class="pool-scroll" id="poolScroll"></div>
         </div>
       </div>
-      <div class="mapping-header">
-        <div class="col-head" style="width:20px;"></div>
-        <div class="col-head col-idx">#</div>
-        <div class="col-head col-font">Existing Font Glyph</div>
-        <div class="col-head col-svg">Mapped SVG (drag here)</div>
-        <div class="col-head col-actions"></div>
-      </div>
-      <div class="mapping-scroll" id="mappingScroll">
-        <div id="mappingList"></div>
-        <div class="mapping-footer-actions">
-          <div class="add-row-btn" id="btnAddSlot">+ Add new icon slot</div>
-          <div class="add-row-btn" id="btnAddCatBottom">+ Add category separator</div>
-        </div>
-      </div>
-      <div class="mapping-stats-row">
-        <span class="stats" id="stats"></span>
-      </div>
-    </div>
-    <div class="pool-panel">
-      <div class="pool-header">
-        <h3>SVG Pool <span class="pool-count" id="poolCount"></span></h3>
-        <input class="pool-search" id="poolSearch" placeholder="Search SVGs...">
-      </div>
-      <div class="pool-scroll" id="poolScroll"></div>
     </div>
   `;
 
@@ -456,6 +476,9 @@ function passesFilter(entry, filter) {
 
 // ===== Render the SVG pool =====
 
+let poolFilter = 'all'; // 'all' | 'free' | 'used'
+const collapsedPoolSections = new Set(); // 'free' | 'used'
+
 function renderPool() {
   const container = document.getElementById('poolScroll');
   if (!container) return;
@@ -485,20 +508,50 @@ function renderPool() {
   }
 
   let html = '';
+  const freeCollapsed = collapsedPoolSections.has('free');
+  const usedCollapsed = collapsedPoolSections.has('used');
 
   // Free section
-  html += `<div class="pool-section-header">Free <span class="section-count">(${free.length})</span></div>`;
-  for (const entry of free) {
-    html += poolItemHtml(entry, false);
+  if (poolFilter === 'all' || poolFilter === 'free') {
+    html += `<div class="pool-section-header" data-pool-section="free">
+      <span class="pool-section-chevron${freeCollapsed ? ' collapsed' : ''}">&#9660;</span>
+      Free <span class="section-count">(${free.length})</span>
+    </div>`;
+    if (!freeCollapsed) {
+      for (const entry of free) {
+        html += poolItemHtml(entry, false);
+      }
+    }
   }
 
   // Used section
-  html += `<div class="pool-section-header">Used <span class="section-count">(${used.length})</span></div>`;
-  for (const entry of used) {
-    html += poolItemHtml(entry, true);
+  if (poolFilter === 'all' || poolFilter === 'used') {
+    html += `<div class="pool-section-header" data-pool-section="used">
+      <span class="pool-section-chevron${usedCollapsed ? ' collapsed' : ''}">&#9660;</span>
+      Used <span class="section-count">(${used.length})</span>
+    </div>`;
+    if (!usedCollapsed) {
+      for (const entry of used) {
+        html += poolItemHtml(entry, true);
+      }
+    }
   }
 
   container.innerHTML = html;
+
+  // Wire pool section collapse/expand
+  container.querySelectorAll('.pool-section-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const section = header.dataset.poolSection;
+      if (collapsedPoolSections.has(section)) {
+        collapsedPoolSections.delete(section);
+      } else {
+        collapsedPoolSections.add(section);
+      }
+      renderPool();
+      initDragDrop();
+    });
+  });
 
   // Update pool count badge
   const poolCount = document.getElementById('poolCount');
@@ -542,9 +595,14 @@ function updateStats() {
 function wireMapEvents() {
   const s = getState();
 
-  // Font name input (editable)
+  // Font name input (editable) + hint update
   const fontNameInput = document.getElementById('fontNameInput');
   if (fontNameInput) {
+    const updateHint = () => {
+      const hint = document.querySelector('.font-name-hint strong');
+      if (hint) hint.textContent = (fontNameInput.value.trim() || 'fontname') + '-icon';
+    };
+    fontNameInput.addEventListener('input', updateHint);
     fontNameInput.addEventListener('change', () => {
       const val = fontNameInput.value.trim();
       if (val) {
@@ -832,6 +890,81 @@ function wireMapEvents() {
   if (btnAddCategory) {
     btnAddCategory.addEventListener('click', () => {
       addCategory(-1, 'New Category');
+    });
+  }
+
+  // Pool filter buttons (All / Free / Used)
+  document.querySelectorAll('[data-pool-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.dataset.poolFilter;
+      if (val === 'all') {
+        poolFilter = 'all';
+      } else if (poolFilter === val) {
+        // Deselect → go back to all
+        poolFilter = 'all';
+      } else {
+        poolFilter = val;
+      }
+      // Update button states
+      document.querySelectorAll('[data-pool-filter]').forEach(b => {
+        b.classList.toggle('active', b.dataset.poolFilter === poolFilter);
+      });
+      renderPool();
+      initDragDrop();
+    });
+  });
+
+  // Panel resize handle (between mapping and pool)
+  const panelResize = document.getElementById('panelResize');
+  const sectionPool = document.getElementById('sectionPool');
+  if (panelResize && sectionPool) {
+    let startX, startWidth;
+    panelResize.addEventListener('mousedown', (e) => {
+      startX = e.clientX;
+      startWidth = sectionPool.offsetWidth;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      const onMove = (e) => {
+        const diff = startX - e.clientX;
+        const newWidth = Math.max(200, Math.min(600, startWidth + diff));
+        sectionPool.style.width = newWidth + 'px';
+      };
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  }
+
+  // Column resize handle (between font glyph and mapped SVG columns)
+  const colResize = document.getElementById('colResize');
+  if (colResize) {
+    let startX, startLeftWidth;
+    const colFont = document.querySelector('.col-font');
+    colResize.addEventListener('mousedown', (e) => {
+      startX = e.clientX;
+      startLeftWidth = colFont ? colFont.offsetWidth : 200;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      const onMove = (e) => {
+        const diff = e.clientX - startX;
+        const newFlex = Math.max(100, startLeftWidth + diff);
+        if (colFont) colFont.style.flex = `0 0 ${newFlex}px`;
+        // Also update row-font columns
+        document.querySelectorAll('.row-font').forEach(el => el.style.flex = `0 0 ${newFlex}px`);
+      };
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
     });
   }
 }
