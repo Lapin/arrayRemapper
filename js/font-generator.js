@@ -621,8 +621,10 @@ function buildHtmlPreview(fontName, allMappings, otfBase64, woffBase64, svgEntri
   if (sectionOpen) content += `</div></div></div>`;
   else if (glyphCount > 0) content += `</div>`;
 
-  // If no categories were used, wrap everything in a grid
-  if (!allMappings.some(m => m.isCategory)) {
+  // Wrap categorized content in a single container with rounded corners
+  if (allMappings.some(m => m.isCategory)) {
+    content = `<div class="categories-wrapper">${content}</div>`;
+  } else {
     content = `<div class="grid">${content}</div>`;
   }
 
@@ -703,36 +705,38 @@ function buildHtmlPreview(fontName, allMappings, otfBase64, woffBase64, svgEntri
   }
   .info-content code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
   .info-content ul { margin: 6px 0 6px 18px; }
-  .category-section { margin-bottom: 16px; }
+  .categories-wrapper {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .category-section { border-top: 1px solid #e5e7eb; }
+  .category-section:first-child { border-top: none; }
   .category-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 12px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px 8px 0 0;
+    padding: 12px 14px;
+    background: #f8f9fa;
     cursor: pointer;
     user-select: none;
+    border-bottom: 1px solid #e5e7eb;
   }
-  .category-header:hover { background: #f9fafb; }
-  .category-section.collapsed .category-header { border-radius: 8px; }
+  .category-header:hover { background: #f0f1f3; }
+  .category-section.collapsed .category-header { border-bottom: none; }
   .category-section.collapsed .category-body { display: none; }
   .category-chevron { font-size: 10px; color: #999; transition: transform 0.15s; }
   .category-section.collapsed .category-chevron { transform: rotate(-90deg); }
   .category-title {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: #555;
   }
   .category-body {
-    border: 1px solid #e5e7eb;
-    border-top: none;
-    border-radius: 0 0 8px 8px;
     padding: 12px;
-    background: #fafafa;
   }
   .grid {
     display: grid;
