@@ -38,15 +38,18 @@ function showMenu(x, y, rowIdx) {
   closeMenu();
 
   const s = getState();
-  const menu = document.getElementById('ctxMenu');
-  if (!menu) return;
+  const oldMenu = document.getElementById('ctxMenu');
+  if (!oldMenu) return;
 
-  const isCategory = s.mappings[rowIdx] && s.mappings[rowIdx].isCategory;
+  // Clone to strip ALL old event listeners
+  const menu = oldMenu.cloneNode(false);
+  oldMenu.parentNode.replaceChild(menu, oldMenu);
+  menu.id = 'ctxMenu';
+
   const selectedCount = s.selectedRows.size;
   const hasMultiSelection = selectedCount > 1;
 
   let html = '';
-
   html += `<div class="ctx-menu-item" data-action="add-row-above">Add empty row above</div>`;
   html += `<div class="ctx-menu-item" data-action="add-row-below">Add empty row below</div>`;
   html += `<div class="ctx-menu-item" data-action="add-cat-above">Add category above</div>`;
@@ -81,18 +84,14 @@ function showMenu(x, y, rowIdx) {
   menu.style.top = top + 'px';
   activeMenu = menu;
 
-  // Wire actions
-  menu.addEventListener('click', (e) => {
-    const item = e.target.closest('.ctx-menu-item');
-    if (!item) return;
-
-    const action = item.dataset.action;
-    handleAction(action, rowIdx);
-    closeMenu();
-  }, { once: false });
-
-  // Store row index for reference
-  menu.dataset.rowIdx = rowIdx;
+  // Wire each item directly — no container listener accumulation
+  menu.querySelectorAll('.ctx-menu-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const action = item.dataset.action;
+      closeMenu();
+      handleAction(action, rowIdx);
+    }, { once: true });
+  });
 }
 
 function closeMenu() {
